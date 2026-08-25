@@ -512,6 +512,8 @@ Info: May not work on live streams"</string>
     <string name="morphe_queue_override_flyout_menu_summary">Opens the Morphe queue instead of the YouTube queue</string>
     <string name="morphe_queue_add_flyout_menu_title">Add feed flyout queue menu item</string>
     <string name="morphe_queue_add_flyout_menu_summary">Adds an additional flyout item. Enable this if \"Add to queue\" is not shown</string>
+    <string name="morphe_queue_flyout_direct_action_title">One tap queue actions</string>
+    <string name="morphe_queue_flyout_direct_action_summary">\'Play next\' and \'Play last\' queue the video immediately instead of opening the queue menu</string>
     <string name="morphe_queue_manager_check_failed_auth">Not logged in</string>
     <string name="morphe_queue_manager_check_failed_playlist_id">No playlist ID</string>
     <string name="morphe_queue_manager_check_failed_queue">Queue is empty</string>
@@ -522,6 +524,7 @@ Info: May not work on live streams"</string>
     <string name="morphe_queue_manager_fetch_failed_remove">Failed to remove from queue</string>
     <string name="morphe_queue_manager_fetch_failed_save">Failed to save queue</string>
     <string name="morphe_queue_manager_fetch_succeeded_add">Added to queue</string>
+    <string name="morphe_queue_manager_fetch_succeeded_play_next">Playing next</string>
     <string name="morphe_queue_manager_fetch_succeeded_create">Queue created</string>
     <string name="morphe_queue_manager_fetch_succeeded_remove">Removed from queue</string>
     <string name="morphe_queue_manager_fetch_succeeded_save">Queue saved to %s</string>
@@ -764,6 +767,9 @@ To access Settings, enable the Settings button via General → Toolbar → Show 
     <string name="morphe_show_toolbar_settings_button_index_title">Settings button position</string>
     <string name="morphe_show_toolbar_settings_button_type_title">Settings button action</string>
     <string name="morphe_show_toolbar_settings_button_type_summary">When enabled, tap opens Morphe settings and long press opens YouTube settings, disable to swap</string>
+    <string name="morphe_show_toolbar_queue_button_title">Show Queue button</string>
+    <string name="morphe_show_toolbar_queue_button_summary">Adds a toolbar button that opens the Morphe queue</string>
+    <string name="morphe_show_toolbar_queue_button_index_title">Queue button position</string>
 
     <!-- layout.hide.player.flyoutmenupanel.hidePlayerFlyoutMenuPatch -->
     <string name="morphe_hide_player_flyout_title">Flyout menu</string>

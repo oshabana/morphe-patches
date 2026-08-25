@@ -406,7 +406,9 @@ val navigationBarPatch = bytecodePatch(
             SwitchPreference("morphe_hide_toolbar_search_button"),
             SwitchPreference("morphe_show_toolbar_settings_button"),
             ListPreference("morphe_show_toolbar_settings_button_index"),
-            SwitchPreference("morphe_show_toolbar_settings_button_type", summary = true)
+            SwitchPreference("morphe_show_toolbar_settings_button_type", summary = true),
+            SwitchPreference("morphe_show_toolbar_queue_button", summary = true),
+            ListPreference("morphe_show_toolbar_queue_button_index")
         )
 
         PreferenceScreen.GENERAL.addPreferences(
@@ -503,6 +505,7 @@ val navigationBarPatch = bytecodePatch(
         // Show settings button
         //
         hookToolBar("$EXTENSION_CLASS->setToolbarSettingsOnClickListener")
+        hookToolBar("$EXTENSION_CLASS->setToolbarQueueOnClickListener")
 
         SettingIntentFingerprint.let {
             it.classDef.apply {
@@ -610,7 +613,7 @@ val navigationBarPatch = bytecodePatch(
                         # Modify list (removes hidden buttons to free up layout space)
                         invoke-static { v$protoListRegister }, $EXTENSION_CLASS->modifyToolbarButtons(Ljava/util/List;)V
                         
-                        if-eqz v$byteRegister, :immutable
+                        if-eqz v$byteRegister, :queue_button
 
                         # Parse bytes back into native Buttons wrapper class
                         sget-object v$protoListFreeRegister, $buttonsClass->a:$buttonsClass
@@ -623,6 +626,22 @@ val navigationBarPatch = bytecodePatch(
                         
                         # Move to preferred index
                         invoke-static { v$protoListRegister }, $EXTENSION_CLASS->applyToolbarSettingsButtonIndex(Ljava/util/List;)V
+
+                        :queue_button
+                        # Generate Queue Button Bytes
+                        invoke-static { v$protoListRegister }, $EXTENSION_CLASS->createToolbarQueueButton(Ljava/util/List;)[B
+                        move-result-object v$byteRegister
+
+                        if-eqz v$byteRegister, :immutable
+
+                        sget-object v$protoListFreeRegister, $buttonsClass->a:$buttonsClass
+                        invoke-static { v$protoListFreeRegister, v$byteRegister }, ${parseByteArrayMethodRef.get()!!}
+                        move-result-object v$protoListFreeRegister
+                        check-cast v$protoListFreeRegister, $buttonsClass
+
+                        invoke-interface { v$protoListRegister, v$protoListFreeRegister }, Ljava/util/List;->add(Ljava/lang/Object;)Z
+
+                        invoke-static { v$protoListRegister }, $EXTENSION_CLASS->applyToolbarQueueButtonIndex(Ljava/util/List;)V
 
                         :immutable
                         nop

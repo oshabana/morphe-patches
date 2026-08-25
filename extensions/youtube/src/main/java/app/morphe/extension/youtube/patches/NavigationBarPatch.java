@@ -46,6 +46,7 @@ import app.morphe.extension.youtube.innertube.GuideResponseOuterClass.Buttons;
 import app.morphe.extension.youtube.innertube.GuideResponseOuterClass.PivotBarItemRenderer;
 import app.morphe.extension.youtube.innertube.IconOuterClass.Icon;
 import app.morphe.extension.youtube.innertube.IconOuterClass.YTIconType;
+import app.morphe.extension.youtube.patches.utils.PlaylistPatch;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.NavigationBar;
 
@@ -362,6 +363,8 @@ public final class NavigationBarPatch {
 
     private static final String SETTING_BUTTON_ENUM_NAME = "SETTINGS_CAIRO";
 
+    private static final String QUEUE_BUTTON_ENUM_NAME = "QUEUE_MUSIC";
+
     private static final boolean HIDE_TOOLBAR_CAST_BUTTON = Settings.HIDE_TOOLBAR_CAST_BUTTON.get();
 
     private static final boolean HIDE_TOOLBAR_CHAT_BUTTON = Settings.HIDE_TOOLBAR_CHAT_BUTTON.get();
@@ -373,6 +376,9 @@ public final class NavigationBarPatch {
     private static final boolean HIDE_TOOLBAR_SEARCH_BUTTON = Settings.HIDE_TOOLBAR_SEARCH_BUTTON.get();
 
     private static final boolean HIDE_TOOLBAR_MICROPHONE_BUTTON = Settings.HIDE_TOOLBAR_MICROPHONE_BUTTON.get();
+
+    private static final boolean SHOW_TOOLBAR_QUEUE_BUTTON = Settings.SHOW_TOOLBAR_QUEUE_BUTTON.get();
+    private static final IntegerSetting SHOW_TOOLBAR_QUEUE_BUTTON_INDEX = Settings.SHOW_TOOLBAR_QUEUE_BUTTON_INDEX;
 
     private static final boolean SHOW_TOOLBAR_SETTINGS_BUTTON = Settings.SHOW_TOOLBAR_SETTINGS_BUTTON.get();
     private static final IntegerSetting SHOW_TOOLBAR_SETTINGS_BUTTON_INDEX = Settings.SHOW_TOOLBAR_SETTINGS_BUTTON_INDEX;
@@ -612,6 +618,65 @@ public final class NavigationBarPatch {
             context.startActivity(intent);
         } catch (Exception e) {
             Logger.printException(() -> "Failed to open Morphe settings", e);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
+    @Nullable
+    public static byte[] createToolbarQueueButton(List<MessageLite> rawButtonList) {
+        if (!SHOW_TOOLBAR_QUEUE_BUTTON || rawButtonList == null || rawButtonList.isEmpty()) return null;
+        try {
+            for (MessageLite msg : rawButtonList) {
+                try {
+                    Buttons originalButtons = Buttons.parseFrom(msg.toByteArray());
+
+                    if (originalButtons.hasButtonRenderer() && originalButtons.getButtonRenderer().hasIcon()) {
+                        ButtonRenderer.Builder renderer = originalButtons.getButtonRenderer().toBuilder();
+
+                        renderer.clearButtonRendererAccessibilityData();
+                        renderer.clearRendererAccessibilityData();
+
+                        renderer.clearIcon();
+                        renderer.setIcon(Icon.newBuilder().setYtIconType(YTIconType.QUEUE_MUSIC).build());
+
+                        return originalButtons.toBuilder().setButtonRenderer(renderer.build()).build().toByteArray();
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        } catch (Exception e) {
+            Logger.printException(() -> "Failed to create toolbar queue button", e);
+        }
+        return null;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void applyToolbarQueueButtonIndex(List<MessageLite> rawButtonList) {
+        if (!SHOW_TOOLBAR_QUEUE_BUTTON || rawButtonList == null || rawButtonList.isEmpty()) return;
+
+        int targetIndex = SHOW_TOOLBAR_QUEUE_BUTTON_INDEX.get() - 1;
+
+        targetIndex = Math.max(0, Math.min(targetIndex, rawButtonList.size() - 1));
+
+        MessageLite queueButton = rawButtonList.remove(rawButtonList.size() - 1);
+        rawButtonList.add(targetIndex, queueButton);
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void setToolbarQueueOnClickListener(String enumName, View parentView, ImageView imageView) {
+        if (SHOW_TOOLBAR_QUEUE_BUTTON && QUEUE_BUTTON_ENUM_NAME.equals(enumName)) {
+            Utils.runOnMainThreadDelayed(() -> {
+                if (imageView != null) {
+                    imageView.setClickable(true);
+                    imageView.setOnClickListener(button -> PlaylistPatch.openQueue(button.getContext()));
+                }
+            }, 100);
         }
     }
 }

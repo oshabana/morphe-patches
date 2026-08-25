@@ -22,9 +22,12 @@ import app.morphe.extension.youtube.settings.Settings;
 @SuppressWarnings("unused")
 public final class AddToQueuePatch {
 
+    private static final String QUEUE_PLAY_NEXT = "QUEUE_PLAY_NEXT";
+    private static final String QUEUE_PLAY_LAST = "QUEUE_PLAY_LAST";
+
     public static final List<String> queueButtonOriginalNames = List.of(
-            "QUEUE_PLAY_NEXT",
-            "QUEUE_PLAY_LAST"
+            QUEUE_PLAY_NEXT,
+            QUEUE_PLAY_LAST
     );
 
     /**
@@ -102,13 +105,22 @@ public final class AddToQueuePatch {
         try {
             if (queueButtonOriginalNames.contains(buttonName)) {
                 String flyoutVideoId = FlyoutUtils.getFlyoutVideoId();
-                Logger.printDebug(() -> "Opening custom queue flyout with videoId: " + flyoutVideoId);
 
                 Activity activity = Utils.getActivity();
-                if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) {
-                    PlaylistPatch.prepareDialogBuilder(activity, flyoutVideoId);
-                } else {
+                if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
                     Logger.printException(() -> "Could not open queue flyout, activity is not available");
+                    FlyoutUtils.dismissFlyout();
+                    return true;
+                }
+
+                if (Settings.QUEUE_FLYOUT_DIRECT_ACTION.get()) {
+                    final boolean playNext = QUEUE_PLAY_NEXT.equals(buttonName);
+                    Logger.printDebug(() -> "Queueing videoId: " + flyoutVideoId
+                            + ", playNext: " + playNext);
+                    PlaylistPatch.addToQueueDirect(activity, flyoutVideoId, playNext);
+                } else {
+                    Logger.printDebug(() -> "Opening custom queue flyout with videoId: " + flyoutVideoId);
+                    PlaylistPatch.prepareDialogBuilder(activity, flyoutVideoId);
                 }
 
                 FlyoutUtils.dismissFlyout(); // Must dismiss after showing dialog.

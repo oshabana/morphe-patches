@@ -304,8 +304,15 @@ public class PlaylistPatch {
                             EditPlaylistRequest.clearVideoId(currentVideoId);
                             Logger.printDebug(() -> "Video added, setVideoId: " + fetchedSetVideoId);
 
-                            boolean movedNext = playNext
-                                    && movePlaylistItemNext(currentPlaylistId, fetchedSetVideoId);
+                            // Adds land at the front of the playlist, so every add is
+                            // followed by a move to the position the action asked for.
+                            boolean movedNext = false;
+                            if (playNext) {
+                                movedNext = movePlaylistItemNext(context, currentPlaylistId,
+                                        fetchedSetVideoId);
+                            } else {
+                                movePlaylistItemLast(currentPlaylistId, fetchedSetVideoId);
+                            }
                             showToast(movedNext ? fetchSucceededPlayNext : fetchSucceededAdd);
                             if (openPlaylist) {
                                 openQueue(context, currentVideoId, openVideo, reload);
@@ -319,26 +326,83 @@ public class PlaylistPatch {
 
     /**
      * Moves a freshly added queue item so it plays directly after the current video.
-     * Falls back to moving it to the front of the queue when the currently playing
-     * video is not itself in the queue.
+     *
+     * <p>When the video on screen is not in the queue the queue is not attached to
+     * playback, so nothing would play after it. If {@link Settings#QUEUE_PLAY_NEXT_AUTOPLAY}
+     * is enabled the current video is added to the queue and reloaded in queue context,
+     * which makes playback continue into the queue on its own.
      *
      * <p>Must be called from a background thread while holding {@code lastVideoIds}.
      */
-    private static boolean movePlaylistItemNext(String currentPlaylistId, String addedSetVideoId) {
+    private static boolean movePlaylistItemNext(Context context, String currentPlaylistId,
+                                                String addedSetVideoId) {
         try {
             String predecessorSetVideoId = null;
+            boolean attachQueue = false;
             String playingVideoId = VideoInformation.getVideoId();
-            if (!playingVideoId.isEmpty()) {
+
+            if (!playingVideoId.isEmpty() && !PlayerType.getCurrent().isNoneOrHidden()) {
                 String playingSetVideoId = lastVideoIds.get(playingVideoId);
-                if (playingSetVideoId != null && !playingSetVideoId.equals(addedSetVideoId)) {
+
+                if (playingSetVideoId == null && Settings.QUEUE_PLAY_NEXT_AUTOPLAY.get()) {
+                    playingSetVideoId = EditPlaylistRequest.add(playingVideoId,
+                            currentPlaylistId, AuthUtils.getRequestHeader());
+                    if (playingSetVideoId != null && !playingSetVideoId.isEmpty()) {
+                        lastVideoIds.putIfAbsent(playingVideoId, playingSetVideoId);
+                        attachQueue = true;
+                        Logger.printDebug(() -> "Current video added to queue to continue into it");
+                    }
+                }
+
+                if (playingSetVideoId != null && !playingSetVideoId.isEmpty()
+                        && !playingSetVideoId.equals(addedSetVideoId)) {
                     predecessorSetVideoId = playingSetVideoId;
                 }
             }
 
-            return MovePlaylistItemRequest.move(currentPlaylistId, addedSetVideoId,
+            final boolean moved = MovePlaylistItemRequest.move(currentPlaylistId, addedSetVideoId,
                     predecessorSetVideoId, AuthUtils.getRequestHeader());
+
+            if (attachQueue) {
+                // Reloads the current video at its current time, inside the queue playlist.
+                openQueue(context, playingVideoId, true, true);
+            }
+
+            return moved;
         } catch (Exception ex) {
             Logger.printException(() -> "movePlaylistItemNext failure", ex);
+            return false;
+        }
+    }
+
+    /**
+     * Moves a freshly added queue item to the end of the queue.
+     *
+     * <p>Must be called from a background thread while holding {@code lastVideoIds}.
+     */
+    private static boolean movePlaylistItemLast(String currentPlaylistId, String addedSetVideoId) {
+        try {
+            Map<String, String> items = GetPlaylistItemsRequest.fetch(currentPlaylistId,
+                    AuthUtils.getRequestHeader());
+            if (items == null || items.size() < 2) {
+                // Nothing to move behind.
+                return true;
+            }
+
+            String lastSetVideoId = null;
+            for (String setVideoId : items.values()) {
+                if (!setVideoId.equals(addedSetVideoId)) {
+                    lastSetVideoId = setVideoId;
+                }
+            }
+            if (lastSetVideoId == null) {
+                return true;
+            }
+
+            return MovePlaylistItemRequest.move(currentPlaylistId, addedSetVideoId,
+                    lastSetVideoId, AuthUtils.getRequestHeader());
+        } catch (Exception ex) {
+            Logger.printException(() -> "movePlaylistItemLast failure", ex);
             return false;
         }
     }

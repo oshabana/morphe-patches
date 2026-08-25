@@ -260,6 +260,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting QUEUE_OVERRIDE_FLYOUT_MENU = new BooleanSetting("morphe_queue_override_flyout_menu", TRUE, true);
     public static final BooleanSetting QUEUE_ADD_FLYOUT_MENU = new BooleanSetting("morphe_queue_add_flyout_menu", TRUE);
     public static final BooleanSetting QUEUE_FLYOUT_DIRECT_ACTION = new BooleanSetting("morphe_queue_flyout_direct_action", TRUE, parent(QUEUE_OVERRIDE_FLYOUT_MENU));
+    public static final BooleanSetting QUEUE_PLAY_NEXT_AUTOPLAY = new BooleanSetting("morphe_queue_play_next_autoplay", TRUE);
     public static final StringSetting QUEUE_PLAYLIST_ID = new StringSetting("morphe_queue_playlist_id", "");
     public static final BooleanSetting OPEN_CHANNEL_OF_LIVE_AVATAR = new BooleanSetting("morphe_open_channel_of_live_avatar", FALSE);
     public static final BooleanSetting VIDEO_QUALITY_DIALOG_BUTTON = new BooleanSetting("morphe_video_quality_dialog_button", FALSE, true);

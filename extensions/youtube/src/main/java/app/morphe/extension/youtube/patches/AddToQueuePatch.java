@@ -22,8 +22,8 @@ import app.morphe.extension.youtube.settings.Settings;
 @SuppressWarnings("unused")
 public final class AddToQueuePatch {
 
-    private static final String QUEUE_PLAY_NEXT = "QUEUE_PLAY_NEXT";
-    private static final String QUEUE_PLAY_LAST = "QUEUE_PLAY_LAST";
+    public static final String QUEUE_PLAY_NEXT = "QUEUE_PLAY_NEXT";
+    public static final String QUEUE_PLAY_LAST = "QUEUE_PLAY_LAST";
 
     public static final List<String> queueButtonOriginalNames = List.of(
             QUEUE_PLAY_NEXT,

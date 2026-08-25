@@ -9,6 +9,8 @@ package app.morphe.extension.youtube.patches.utils.requests;
 
 import android.os.Build;
 
+import androidx.annotation.Nullable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -138,6 +140,34 @@ public final class PlaylistRoutes {
             return body.toString().getBytes(StandardCharsets.UTF_8);
         } catch (JSONException ex) {
             Logger.printException(() -> "editPlaylistBody failed", ex);
+        }
+        return new byte[0];
+    }
+
+    /**
+     * Builds a request that moves an item already in the playlist to a new position.
+     *
+     * @param predecessorSetVideoId The item to place this one after. When null or empty the item
+     *                              is moved to the front of the playlist.
+     */
+    public static byte[] movePlaylistItemBody(String playlistId, String setVideoId,
+                                              @Nullable String predecessorSetVideoId) {
+        try {
+            JSONObject body = getBaseContentJson();
+            body.put("playlistId", playlistId);
+
+            JSONObject action = new JSONObject();
+            action.put("action", "ACTION_MOVE_VIDEO_AFTER");
+            action.put("setVideoId", setVideoId);
+            if (predecessorSetVideoId != null && !predecessorSetVideoId.isEmpty()) {
+                action.put("movedSetVideoIdPredecessor", predecessorSetVideoId);
+            }
+            JSONArray actions = new JSONArray();
+            actions.put(action);
+            body.put("actions", actions);
+            return body.toString().getBytes(StandardCharsets.UTF_8);
+        } catch (JSONException ex) {
+            Logger.printException(() -> "movePlaylistItemBody failed", ex);
         }
         return new byte[0];
     }

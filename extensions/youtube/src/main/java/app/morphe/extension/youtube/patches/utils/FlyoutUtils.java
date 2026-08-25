@@ -276,8 +276,9 @@ public final class FlyoutUtils {
                     flyoutPanel,
                     queueButtonDrawable,
                     queueButtonName,
+                    // Appends. The menu already has a 'Play next in queue' item.
                     v -> AddToQueuePatch.flyoutButtonClickLogic(
-                            AddToQueuePatch.queueButtonOriginalNames.get(0)
+                            AddToQueuePatch.QUEUE_PLAY_LAST
                     ),
                     nextButtonIndex
             );

@@ -290,7 +290,12 @@ public class PlaylistPatch {
                                     return;
                                 }
                                 // Clear saved playlist and try again.
+                                // Cached requests are keyed by video id and are kept after a
+                                // failure, so they must be dropped or the retry reuses them.
                                 playlistId = Settings.QUEUE_PLAYLIST_ID.resetToDefault();
+                                lastVideoIds.clear();
+                                EditPlaylistRequest.clearVideoId(currentVideoId);
+                                CreatePlaylistRequest.clear();
                                 fetchQueue(context, false, openPlaylist, openVideo, reload, false, playNext);
                                 return;
                             }

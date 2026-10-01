@@ -35,3 +35,7 @@ google-services.json
 
 # NPM modules
 node_modules/
+build.sh
+
+# graphify local graph output — regenerable, not committed (run `graphify update .`).
+graphify-out/

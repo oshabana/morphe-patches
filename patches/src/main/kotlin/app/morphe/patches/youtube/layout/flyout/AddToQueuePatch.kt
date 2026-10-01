@@ -87,7 +87,10 @@ val addToQueuePatch = bytecodePatch(
         PreferenceScreen.FEED.addPreferences(
             noTitleUnsortedPreferenceCategory(
                 SwitchPreference("morphe_queue_override_flyout_menu", summary = true),
-                SwitchPreference("morphe_queue_add_flyout_menu", summary = true)
+                SwitchPreference("morphe_queue_flyout_direct_action", summary = true),
+                SwitchPreference("morphe_queue_add_flyout_menu", summary = true),
+                SwitchPreference("morphe_queue_play_next_autoplay", summary = true),
+                SwitchPreference("morphe_queue_restore", summary = true)
             )
         )
 

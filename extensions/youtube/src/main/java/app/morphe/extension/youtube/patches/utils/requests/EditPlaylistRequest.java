@@ -63,6 +63,18 @@ public class EditPlaylistRequest {
         return null;
     }
 
+    /**
+     * Adds a video to a playlist and waits for the result.
+     * Bypasses the cache, because callers already run on a background thread and
+     * a cached failure must not be reused.
+     *
+     * @return The new setVideoId, or null if the add failed.
+     */
+    @Nullable
+    public static String add(String videoId, String playlistId, Map<String, String> requestHeader) {
+        return fetch(videoId, playlistId, null, requestHeader);
+    }
+
     public static void clear() {
         cache.clear();
     }
